@@ -279,6 +279,8 @@ static void do_init_dialog(HWND hwnd)
    set_local_terminal_colors() ;
    termout("terminal size: columns=%u, screen rows=%u",
       term_get_columns(), term_get_rows());
+   // syslog("terminal size: columns=%u, screen rows=%u\n",
+   //    term_get_columns(), term_get_rows());
 }
 
 //***********************************************************************
