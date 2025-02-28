@@ -3,25 +3,6 @@
 
 WINWIZICO       ICON    "scroll.ico"
 
-#define DONE_WIDTH   40   
-#define DONE_HEIGHT  20
-#define DONE_TOP     CL_TOP+5
-#define DONE_LEFT    140
-
-#define ATTR_WIDTH      (20)
-
-//***************************************************************
-//  Note:  all dialog-box dimensions which are specified
-//  in resource files are off by a factor of two.
-//  Yes, this is intentional on Microsoft's part;
-//  the purpose is to confound programmers who are developing
-//  Windows apps for the first time.
-//  Once the application is running, dimensions work normally!!
-//  See GetDialogBaseUnits() and "DIALOG CONTROL" in MSDN
-//***************************************************************
-#define FONT_HEIGHT     10
-#define STR_WIDTH       60
-
 //*******************************************************************
 //  keyboard accelerators
 //*******************************************************************
