@@ -22,7 +22,7 @@ static const char *Version = "Terminal program, Version 1.00" ;
 #include "winmsgs.h"
 
 //***********************************************************************
-HINSTANCE g_hinst = 0;
+static HINSTANCE g_hinst = 0;
 
 static HWND hwndMain ;
 

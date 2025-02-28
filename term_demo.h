@@ -1,10 +1,8 @@
-//****************************************************
-//  wizard.h - Declarations for Wizard's Castle
+//****************************************************************************
+//  term_demo.h - public declarations for terminal-demo program
 //  
 //  Written by:   Daniel D. Miller
-//****************************************************
-
-extern HINSTANCE g_hinst ; //  top-level hinstance
+//****************************************************************************
 
 //****************************************************************************
 //  debug: message-reporting data 
@@ -19,13 +17,12 @@ extern HINSTANCE g_hinst ; //  top-level hinstance
 #define  DBG_ETHERNET      0x40
 
 extern uint dbg_flags ;
+
 //**************************************************************
 //  function prototypes
 //**************************************************************
 
-// extern uint cxClient, cyClient ;
-
-//  winwiz.cpp
+//  term_demo.cpp
 void status_message(char *msgstr);
 void status_message(uint idx, char *msgstr);
 

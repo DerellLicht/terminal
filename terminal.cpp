@@ -12,7 +12,7 @@
 #include "resource.h"
 #include "common.h"
 #include "commonw.h"
-#include "term_demo.h"
+#include "term_demo.h"  //  dbg_flags and constants
 #include "statbar.h"
 #include "cterminal.h" 
 #include "terminal.h"
@@ -130,7 +130,7 @@ void setup_terminal_window(HWND hwnd, uint StatusBarHeight, uint bottom_ref_cont
    ctrl_bottom += 3 ;
    uint lvdy = cyClient - ctrl_bottom - StatusBarHeight ;
 
-   myTerminal = new CTerminal(hwnd, IDC_TERMINAL, g_hinst, 
+   myTerminal = new CTerminal(hwnd, IDC_TERMINAL, (HINSTANCE) GetWindowLong(hwnd, GWL_HINSTANCE), 
       0, ctrl_bottom, cxClient-1, lvdy,
       LVL_STY_VIRTUAL | LVL_STY_NO_HEADER | LVL_STY_PAGE_TO_END ) ;
    myTerminal->set_terminal_font("Courier New", 100, EZ_ATTR_BOLD) ;
