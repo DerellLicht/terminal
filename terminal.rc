@@ -1,0 +1,75 @@
+#include <windows.h>
+#include "resource.h"
+
+WINWIZICO       ICON    "scroll.ico"
+
+#define DONE_WIDTH   40   
+#define DONE_HEIGHT  20
+#define DONE_TOP     CL_TOP+5
+#define DONE_LEFT    140
+
+#define ATTR_WIDTH      (20)
+
+//***************************************************************
+//  Note:  all dialog-box dimensions which are specified
+//  in resource files are off by a factor of two.
+//  Yes, this is intentional on Microsoft's part;
+//  the purpose is to confound programmers who are developing
+//  Windows apps for the first time.
+//  Once the application is running, dimensions work normally!!
+//  See GetDialogBaseUnits() and "DIALOG CONTROL" in MSDN
+//***************************************************************
+#define FONT_HEIGHT     10
+#define STR_WIDTH       60
+
+//*******************************************************************
+//  keyboard accelerators
+//*******************************************************************
+// IDR_ACCELERATOR1 ACCELERATORS 
+// BEGIN
+//     // VK_F1,          IDC_BTN_F1,              VIRTKEY, NOINVERT
+//     // VK_LEFT,        IDC_VK_LEFT,             VIRTKEY, NOINVERT
+//     // VK_UP,          IDC_VK_UP,               VIRTKEY, NOINVERT
+//     // VK_RIGHT,       IDC_VK_RIGHT,            VIRTKEY, NOINVERT
+//     // VK_DOWN,        IDC_VK_DOWN,             VIRTKEY, NOINVERT
+//     "h",     IDB_HELP,          ASCII, ALT, NOINVERT
+//     "q",     IDB_CLOSE,            ASCII, ALT, NOINVERT
+// END
+
+//*******************************************************************
+//  main menu, derived from Petzold5:MenuDemo
+//*******************************************************************
+IDM_MAINMENU MENU DISCARDABLE 
+BEGIN
+    POPUP " Operations "
+    BEGIN
+      MENUITEM "Open skin files",   IDM_OPEN_SKIN
+      MENUITEM "Do Something 2",    IDM_ITEM2
+      MENUITEM SEPARATOR
+      MENUITEM "Close Program",     IDB_CLOSE
+    END
+    // MENUITEM " Show/Hide Terminal ",        IDB_TERM_ON
+    POPUP "Help"
+    BEGIN
+        MENUITEM "Help...",         IDB_HELP
+        MENUITEM "About...",        IDD_ABOUT
+    END
+END
+
+//*******************************************************************
+//  main dialog
+//*******************************************************************
+// IDD_MAIN_DIALOG DIALOG DISCARDABLE  160, 40, 350, 370
+IDD_MAIN_DIALOG DIALOGEX  160, 40, 350, 250
+STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX
+// EXSTYLE WS_EX_CONTROLPARENT
+CAPTION "Terminal utility"
+FONT 10, "Times New Roman"
+BEGIN
+   DEFPUSHBUTTON  "Add line to terminal", IDB_ADD_LINE, 10, 5, 100, 12
+
+   // LTEXT           " ",              IDC_MAP_AREA, 2, 1, 200, 200, 0, WS_EX_STATICEDGE
+   // LTEXT           " ",              IDC_MAP_AREA, 2, 5, 200, 20, 0, WS_EX_CLIENTEDGE
+   // LTEXT           " ",              IDC_MAP_AREA, 3, 3, 200, 200, WS_EX_CLIENTEDGE  //  doesn't draw
+END
+
