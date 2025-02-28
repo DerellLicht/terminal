@@ -36,7 +36,7 @@ uint dbg_flags = 0
 static uint cxClient = 0 ;
 static uint cyClient = 0 ;
 
-static HMENU hMainMenu = NULL ;
+// static HMENU hMainMenu = NULL ;
 
 static CStatusBar *MainStatusBar = NULL;
 // static HWND hToolTip ;  /* Tooltip handle */
@@ -222,12 +222,14 @@ static void center_window(void)
 }
 
 //***********************************************************************
-static void setup_main_menu(HWND hwnd)
-{
-   hMainMenu = LoadMenu(g_hinst, MAKEINTRESOURCE(IDM_MAINMENU));
-   SetMenu(hwnd, hMainMenu);
-   // update_summary_options_menu() ;   //  initial setup
-}
+//  setting main menu, breaks status bar !!
+//***********************************************************************
+// static void setup_main_menu(HWND hwnd)
+// {
+//    hMainMenu = LoadMenu(g_hinst, MAKEINTRESOURCE(IDM_MAINMENU));
+//    SetMenu(hwnd, hMainMenu);
+//    // update_summary_options_menu() ;   //  initial setup
+// }
 
 //***********************************************************************
 static void do_init_dialog(HWND hwnd)
@@ -257,7 +259,9 @@ static void do_init_dialog(HWND hwnd)
    cyClient = (myRect.bottom - myRect.top) ;
 
    center_window() ;
-   setup_main_menu(hwnd) ;
+   //  setting main menu, breaks status bar !!
+   //  setup_main_menu(hwnd) ;
+   
    //****************************************************************
    //  create/configure status bar
    //****************************************************************
@@ -279,6 +283,9 @@ static void do_init_dialog(HWND hwnd)
    set_local_terminal_colors() ;
    termout("terminal size: columns=%u, screen rows=%u",
       term_get_columns(), term_get_rows());
+   sprintf(msgstr, "terminal size: columns=%u, rows=%u\n",
+      term_get_columns(), term_get_rows());
+   status_message(msgstr);
    // syslog("terminal size: columns=%u, screen rows=%u\n",
    //    term_get_columns(), term_get_rows());
 }
