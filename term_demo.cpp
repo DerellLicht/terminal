@@ -380,7 +380,6 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine
       syslog("CreateDialog: %s\n", get_system_message()) ;
       return 0;
    }
-   // HACCEL hAccel = LoadAccelerators(g_hinst, MAKEINTRESOURCE(IDR_ACCELERATOR1));  
    // [2920] hInstance=4194304, 4194304, 4194304
    // syslog("hInstance=%u, %u, %u\n", 
    //    hInstance, 
@@ -390,7 +389,6 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine
 
    MSG Msg;
    while(GetMessage(&Msg, NULL,0,0)) {
-      // if(!TranslateAccelerator(hwnd, hAccel, &Msg)  &&  !IsDialogMessage(hwnd, &Msg)) {
       if(!IsDialogMessage(hwnd, &Msg)) {
           TranslateMessage(&Msg);
           DispatchMessage(&Msg);

@@ -4,20 +4,6 @@
 WINWIZICO       ICON    "scroll.ico"
 
 //*******************************************************************
-//  keyboard accelerators
-//*******************************************************************
-// IDR_ACCELERATOR1 ACCELERATORS 
-// BEGIN
-//     // VK_F1,          IDC_BTN_F1,              VIRTKEY, NOINVERT
-//     // VK_LEFT,        IDC_VK_LEFT,             VIRTKEY, NOINVERT
-//     // VK_UP,          IDC_VK_UP,               VIRTKEY, NOINVERT
-//     // VK_RIGHT,       IDC_VK_RIGHT,            VIRTKEY, NOINVERT
-//     // VK_DOWN,        IDC_VK_DOWN,             VIRTKEY, NOINVERT
-//     "h",     IDB_HELP,          ASCII, ALT, NOINVERT
-//     "q",     IDB_CLOSE,            ASCII, ALT, NOINVERT
-// END
-
-//*******************************************************************
 //  main menu, derived from Petzold5:MenuDemo
 //*******************************************************************
 IDM_MAINMENU MENU DISCARDABLE 
