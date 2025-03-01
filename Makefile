@@ -26,9 +26,9 @@ LiFLAGS = -Ider_libs
 CFLAGS += -Ider_libs
 CSRC=der_libs/common_funcs.cpp \
 der_libs/common_win.cpp \
-der_libs/statbar.cpp \
 der_libs/vlistview.cpp \
 der_libs/cterminal.cpp \
+der_libs/statbar.cpp \
 der_libs/winmsgs.cpp 
 
 CSRC+=term_demo.cpp terminal.cpp
@@ -77,11 +77,11 @@ rc.o: $(BASE).rc
 
 der_libs/common_funcs.o: der_libs/common.h
 der_libs/common_win.o: der_libs/common.h der_libs/commonw.h
-der_libs/statbar.o: der_libs/common.h der_libs/commonw.h der_libs/statbar.h
 der_libs/vlistview.o: der_libs/common.h der_libs/commonw.h
 der_libs/vlistview.o: der_libs/vlistview.h
 der_libs/cterminal.o: der_libs/common.h der_libs/commonw.h
 der_libs/cterminal.o: der_libs/cterminal.h der_libs/vlistview.h
+der_libs/statbar.o: der_libs/common.h der_libs/commonw.h der_libs/statbar.h
 term_demo.o: resource.h der_libs/common.h der_libs/commonw.h term_demo.h
 term_demo.o: der_libs/statbar.h der_libs/cterminal.h der_libs/vlistview.h
 term_demo.o: terminal.h der_libs/winmsgs.h

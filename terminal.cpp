@@ -44,12 +44,12 @@ void term_replace(char *term_str)
 
 uint term_get_columns(void) 
 {
-   return myTerminal->get_term_rows() ;
+   return myTerminal->get_term_columns() ;
 }
 
 uint term_get_rows(void)
 {
-   return myTerminal->get_term_columns() ;
+   return myTerminal->get_term_rows() ;
 }
 //******************************************************************
 bool term_notify(HWND hwnd, LPARAM lParam)

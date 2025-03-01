@@ -4,26 +4,6 @@
 WINWIZICO       ICON    "scroll.ico"
 
 //*******************************************************************
-//  main menu, derived from Petzold5:MenuDemo
-//*******************************************************************
-IDM_MAINMENU MENU DISCARDABLE 
-BEGIN
-    POPUP " Operations "
-    BEGIN
-      MENUITEM "Open skin files",   IDM_OPEN_SKIN
-      MENUITEM "Do Something 2",    IDM_ITEM2
-      MENUITEM SEPARATOR
-      MENUITEM "Close Program",     IDB_CLOSE
-    END
-    // MENUITEM " Show/Hide Terminal ",        IDB_TERM_ON
-    POPUP "Help"
-    BEGIN
-        MENUITEM "Help...",         IDB_HELP
-        MENUITEM "About...",        IDD_ABOUT
-    END
-END
-
-//*******************************************************************
 //  main dialog
 //*******************************************************************
 // IDD_MAIN_DIALOG DIALOG DISCARDABLE  160, 40, 350, 370
@@ -33,6 +13,7 @@ STYLE DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_MINIM
 CAPTION "Terminal utility"
 FONT 10, "Times New Roman"
 BEGIN
-   DEFPUSHBUTTON  "Add line to terminal", IDB_ADD_LINE, 10, 5, 100, 12
+   DEFPUSHBUTTON  "Add line to terminal", IDB_ADD_LINE,  10, 5, 100, 12
+   PUSHBUTTON     "Close",                IDB_CLOSE,    115, 5, 100, 12
 END
 
