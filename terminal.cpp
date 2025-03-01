@@ -132,7 +132,7 @@ void setup_terminal_window(HWND hwnd, uint StatusBarHeight, uint bottom_ref_cont
 
    myTerminal = new CTerminal(hwnd, IDC_TERMINAL, (HINSTANCE) GetWindowLong(hwnd, GWL_HINSTANCE), 
       0, ctrl_bottom, cxClient-1, lvdy,
-      LVL_STY_VIRTUAL | LVL_STY_NO_HEADER | LVL_STY_PAGE_TO_END ) ;
+      LVL_STY_VIRTUAL | LVL_STY_NO_HEADER | LVL_STY_PAGE_TO_END | LVL_STY_EX_GRIDLINES) ;
    myTerminal->set_terminal_font("Courier New", 100, EZ_ATTR_BOLD) ;
    myTerminal->lview_assign_column_headers() ;
 }
