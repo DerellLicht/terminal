@@ -279,7 +279,7 @@ static void do_init_dialog(HWND hwnd)
    //****************************************************************
    //  create/configure terminal
    //****************************************************************
-   setup_terminal_window(hwnd, MainStatusBar->height(), IDB_ADD_LINE);
+   setup_terminal_window(hwnd, MainStatusBar->height(), IDB_ADD_LINE, IDC_TERMINAL);
    set_local_terminal_colors() ;
    termout("terminal size: columns=%u, screen rows=%u",
       term_get_columns(), term_get_rows());
