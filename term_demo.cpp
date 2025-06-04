@@ -7,8 +7,6 @@
 
 static const char *Version = "Terminal program, Version 1.00" ;
 
-//lint -esym(767, _WIN32_WINNT)
-#define  _WIN32_WINNT   0x0501
 #include <windows.h>
 #include <stdio.h>   //  vsprintf, sprintf, which supports %f
 
@@ -380,18 +378,11 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine
    {
    g_hinst = hInstance;
 
-   // hdlTopLevel = OpenProcess(PROCESS_ALL_ACCESS, false, _getpid()) ;
    HWND hwnd = CreateDialog(g_hinst, MAKEINTRESOURCE(IDD_MAIN_DIALOG), NULL, (DLGPROC) TermProc) ;
    if (hwnd == NULL) {
       syslog("CreateDialog: %s\n", get_system_message()) ;
       return 0;
    }
-   // [2920] hInstance=4194304, 4194304, 4194304
-   // syslog("hInstance=%u, %u, %u\n", 
-   //    hInstance, 
-   //    GetWindowLong(hwnd, GWL_HINSTANCE),
-   //    GetModuleHandle(NULL)
-   //    );
 
    MSG Msg;
    while(GetMessage(&Msg, NULL,0,0)) {
