@@ -5,7 +5,7 @@ USE_UNICODE = NO
 ifeq ($(USE_64BIT),YES)
 TOOLS=d:\tdm64\bin
 else
-TOOLS=c:\tdm32\bin
+TOOLS=d:\tdm32\bin
 endif
 
 #*****************************************************************************
@@ -68,7 +68,7 @@ LIBS=
 all: $(BIN)
 
 clean:
-	rm -vf $(BIN) *.o *.zip *.bak *~
+	rm -vf $(BIN) $(OBJS) *.zip *.bak *~
 
 dist:
 	rm -f $(BASE).zip
@@ -88,10 +88,10 @@ depend:
 
 #************************************************************
 $(BASE).exe: $(OBJS)
-	g++ $(CFLAGS) $(LFLAGS) $(OBJS) -o $@ $(LIBS)
+	$(TOOLS)\g++ $(CFLAGS) $(LFLAGS) $(OBJS) -o $@ $(LIBS)
 
 rc.o: $(BASE).rc 
-	windres $< -O coff -o $@
+	$(TOOLS)\windres $< -O coff -o $@
 
 # DO NOT DELETE
 
