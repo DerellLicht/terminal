@@ -13,7 +13,6 @@
 //lint -esym(715, hdcUnused)  // (line 572) not referenced
 //lint -esym(769, SHOW_ARROW::SHOW_NO_ARROW)
 
-//lint -e1066  Symbol ... declared as "C" conflicts with line ...
 //lint -e1708  typedef not declared as "C" conflicts with line ...
 //lint -e1709  typedef ... declared as "C" 'conflicts with line ...
 //lint -e1784  Symbol ... previously declared as "C", compare with line ...
@@ -71,18 +70,4 @@
 //  compiler knows how to handle these, but maybe check later
 //lint -e713   Loss of precision (assignment) (unsigned int to int)
 //lint -e732   Loss of sign (initialization) (long to unsigned int)
-
-//  exclusions because pclint doesn't know later c++ constructs
-//lint -e52    Expected an lvalue
-//lint -e55    Bad type
-//lint -e63    Expected an lvalue
-//lint -e133   Too many initializers for aggregate 'unknown-name'
-//lint -e503   Boolean argument to relational
-//lint -e505   Redundant left argument to comma
-//lint -e522   Highest operation, function 'clear_room', lacks side-effects
-//lint -e650   Constant '32' out of range for operator '>'
-//lint -e685   Relational operator '>' always evaluates to 'false'
-//lint -e737   Loss of sign in promotion from int to unsigned int
-//lint -e1712  default constructor not defined for class 
-//lint -e550   Symbol not accessed (pclint doesn't understand non-static struct init)
 
