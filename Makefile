@@ -1,22 +1,14 @@
 USE_DEBUG = NO
 USE_64BIT = NO
 USE_UNICODE = NO
+USE_CLANG = NO
+# sadly, cygwin mingw does not support gdiplus...
+USE_CYGWIN = NO
 
-ifeq ($(USE_64BIT),YES)
-TOOLS=d:\tdm64\bin
-else
-TOOLS=d:\tdm32\bin
-endif
+# the legacy version of qualify.cpp, does not depend upon c++ string class
+USE_LEGACY = NO
 
-#*****************************************************************************
-# notes on compiler quirks, using MinGW/G++ V4.3.3
-# if I build with -O3, I get following warnings from g++ :
-#   wfuncs.cpp: In function 'int light_a_flare(HWND__*)':
-#   wfuncs.cpp:338: warning: array subscript is above array bounds
-# where light_a_flare() starts at line 779 !!
-# If I build with -O2, I get no such warnings.
-# In either case, PcLint V9 is giving no warnings on this code.
-#*****************************************************************************
+include ..\tool_select.mak 
 
 ifeq ($(USE_DEBUG),YES)
 CFLAGS=-Wall -O -g -mwindows 
