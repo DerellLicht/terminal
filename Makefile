@@ -20,6 +20,10 @@ endif
 CFLAGS += -Wno-write-strings
 #CFLAGS += -Wno-stringop-truncation
 
+ifeq ($(USE_STATIC),YES)
+LFLAGS += -static
+endif
+
 # link library files
 LiFLAGS = -Ider_libs
 CFLAGS += -Ider_libs
@@ -60,6 +64,12 @@ dist:
 
 wc:
 	wc -l *.cpp *.rc
+
+clint:
+	cmd /C "python ..\ClaudeLint.py --exclude der_libs"
+	
+cppc:
+	cmd /C "cppcheck --project=compile_commands.json --std=c++14 --suppressions-list=./.suppress.cppcheck"
 
 check:
 	cmd /C "d:\llvm\bin\clang-tidy.exe $(CSRC)"

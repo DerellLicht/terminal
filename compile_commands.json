@@ -1,0 +1,138 @@
+[
+ {
+  "directory": "D:\\SourceCode\\Git\\terminal",
+  "arguments": [
+   "d:/llvm/bin/i686-w64-mingw32-clang++",
+   "-Wall",
+   "-O2",
+   "-mwindows",
+   "-Wno-write-strings",
+   "-Ider_libs",
+   "-Weffc++",
+   "-c",
+   "der_libs/common_funcs.cpp",
+   "-o",
+   "der_libs/common_funcs.o"
+  ],
+  "file": "der_libs/common_funcs.cpp"
+ },
+ {
+  "directory": "D:\\SourceCode\\Git\\terminal",
+  "arguments": [
+   "d:/llvm/bin/i686-w64-mingw32-clang++",
+   "-Wall",
+   "-O2",
+   "-mwindows",
+   "-Wno-write-strings",
+   "-Ider_libs",
+   "-Weffc++",
+   "-c",
+   "der_libs/common_win.cpp",
+   "-o",
+   "der_libs/common_win.o"
+  ],
+  "file": "der_libs/common_win.cpp"
+ },
+ {
+  "directory": "D:\\SourceCode\\Git\\terminal",
+  "arguments": [
+   "d:/llvm/bin/i686-w64-mingw32-clang++",
+   "-Wall",
+   "-O2",
+   "-mwindows",
+   "-Wno-write-strings",
+   "-Ider_libs",
+   "-Weffc++",
+   "-c",
+   "der_libs/vlistview.cpp",
+   "-o",
+   "der_libs/vlistview.o"
+  ],
+  "file": "der_libs/vlistview.cpp"
+ },
+ {
+  "directory": "D:\\SourceCode\\Git\\terminal",
+  "arguments": [
+   "d:/llvm/bin/i686-w64-mingw32-clang++",
+   "-Wall",
+   "-O2",
+   "-mwindows",
+   "-Wno-write-strings",
+   "-Ider_libs",
+   "-Weffc++",
+   "-c",
+   "der_libs/cterminal.cpp",
+   "-o",
+   "der_libs/cterminal.o"
+  ],
+  "file": "der_libs/cterminal.cpp"
+ },
+ {
+  "directory": "D:\\SourceCode\\Git\\terminal",
+  "arguments": [
+   "d:/llvm/bin/i686-w64-mingw32-clang++",
+   "-Wall",
+   "-O2",
+   "-mwindows",
+   "-Wno-write-strings",
+   "-Ider_libs",
+   "-Weffc++",
+   "-c",
+   "der_libs/terminal.cpp",
+   "-o",
+   "der_libs/terminal.o"
+  ],
+  "file": "der_libs/terminal.cpp"
+ },
+ {
+  "directory": "D:\\SourceCode\\Git\\terminal",
+  "arguments": [
+   "d:/llvm/bin/i686-w64-mingw32-clang++",
+   "-Wall",
+   "-O2",
+   "-mwindows",
+   "-Wno-write-strings",
+   "-Ider_libs",
+   "-Weffc++",
+   "-c",
+   "der_libs/statbar.cpp",
+   "-o",
+   "der_libs/statbar.o"
+  ],
+  "file": "der_libs/statbar.cpp"
+ },
+ {
+  "directory": "D:\\SourceCode\\Git\\terminal",
+  "arguments": [
+   "d:/llvm/bin/i686-w64-mingw32-clang++",
+   "-Wall",
+   "-O2",
+   "-mwindows",
+   "-Wno-write-strings",
+   "-Ider_libs",
+   "-Weffc++",
+   "-c",
+   "der_libs/winmsgs.cpp",
+   "-o",
+   "der_libs/winmsgs.o"
+  ],
+  "file": "der_libs/winmsgs.cpp"
+ },
+ {
+  "directory": "D:\\SourceCode\\Git\\terminal",
+  "arguments": [
+   "d:/llvm/bin/i686-w64-mingw32-clang++",
+   "-Wall",
+   "-O2",
+   "-mwindows",
+   "-Wno-write-strings",
+   "-Ider_libs",
+   "-Weffc++",
+   "-c",
+   "term_demo.cpp",
+   "-o",
+   "term_demo.o"
+  ],
+  "file": "term_demo.cpp"
+ }
+]

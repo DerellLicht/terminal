@@ -186,40 +186,6 @@ int put_color_msg(uint idx, const char *fmt, ...)
 }
 
 //***********************************************************************
-static uint screen_width  = 0 ;
-static uint screen_height = 0 ;
-
-static void ww_get_monitor_dimens(HWND hwnd)
-{
-   HMONITOR currentMonitor;      // Handle to monitor where fullscreen should go
-   MONITORINFO mi;               // Info of that monitor
-   currentMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
-   mi.cbSize = sizeof(MONITORINFO);
-   if (GetMonitorInfo(currentMonitor, &mi) != FALSE) {
-      screen_width  = mi.rcMonitor.right  - mi.rcMonitor.left ;
-      screen_height = mi.rcMonitor.bottom - mi.rcMonitor.top ;
-   }
-   // curr_dpi = GetScreenDPI() ;
-}
-
-//***********************************************************************
-static void center_window(void)
-{
-   ww_get_monitor_dimens(hwndMain);
-   
-   RECT myRect ;
-   GetWindowRect(hwndMain, &myRect) ;
-   // GetClientRect(hwnd, &myRect) ;
-   uint dialog_width = (myRect.right - myRect.left) ;
-   uint dialog_height = (myRect.bottom - myRect.top) ;
-
-   uint x0 = (screen_width  - dialog_width ) / 2 ;
-   uint y0 = (screen_height - dialog_height) / 2 ;
-
-   SetWindowPos(hwndMain, HWND_TOP, x0, y0, 0, 0, SWP_NOSIZE) ;
-}
-
-//***********************************************************************
 //  setting main menu, breaks status bar !!
 //***********************************************************************
 // static void setup_main_menu(HWND hwnd)
@@ -241,6 +207,7 @@ static void do_init_dialog(HWND hwnd)
    SetClassLongA(hwnd, GCL_HICONSM, (LONG) LoadIcon(g_hinst, (LPCTSTR)WINWIZICO));
 
    hwndMain = hwnd ;
+   get_monitor_dimens(hwnd);
 
    // set_up_working_spaces(hwnd) ; //  do this *before* tooltips !!
    //***************************************************************************
@@ -248,15 +215,14 @@ static void do_init_dialog(HWND hwnd)
    //***************************************************************************
    // create_and_add_tooltips(hwnd, 150, 100, 10000, main_tooltips);
 
-   // RECT rWindow;
-   // unsigned stTop ;
    RECT myRect ;
    // GetWindowRect(hwnd, &myRect) ;
    GetClientRect(hwnd, &myRect) ;
    cxClient = (myRect.right - myRect.left) ;
    cyClient = (myRect.bottom - myRect.top) ;
 
-   center_window() ;
+   // center_window() ;
+   center_dialog_on_screen(hwnd);
    //  setting main menu, breaks status bar !!
    //  setup_main_menu(hwnd) ;
    
@@ -282,6 +248,9 @@ static void do_init_dialog(HWND hwnd)
    sprintf(msgstr, "terminal size: columns=%u, rows=%u",
       term_get_columns(), term_get_rows());
    status_message(msgstr);
+   termout(msgstr);
+   
+   sprintf(msgstr, "monitor dimens: %ux%u pixels", get_screen_width(), get_screen_height());
    termout(msgstr);
 }
 
