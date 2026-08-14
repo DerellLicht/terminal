@@ -11,11 +11,11 @@ USE_LEGACY = NO
 include der_libs\tool_select.mak
 
 ifeq ($(USE_DEBUG),YES)
-CFLAGS=-Wall -O -g -mwindows 
+CFLAGS=-Wall -O -g -Weffc++ -c 
 LFLAGS=
 else
-CFLAGS=-Wall -O2 -mwindows 
-LFLAGS=-s
+CFLAGS=-Wall -O2 -Weffc++ -c 
+LFLAGS=-s -mwindows 
 endif
 CFLAGS += -Wno-write-strings
 #CFLAGS += -Wno-stringop-truncation
@@ -50,7 +50,7 @@ LIBS=
 
 #************************************************************
 %.o: %.cpp
-	$(TOOLS)\g++ $(CFLAGS) -Weffc++ -c $< -o $@
+	$(TOOLS)\$(GNAME) $(CFLAGS) $< -o $@
 
 #************************************************************
 all: $(BIN)
@@ -82,10 +82,10 @@ depend:
 
 #************************************************************
 $(BASE).exe: $(OBJS)
-	$(TOOLS)\g++ $(CFLAGS) $(LFLAGS) $(OBJS) -o $@ $(LIBS)
+	$(TOOLS)\$(GNAME) $(LFLAGS) $(OBJS) -o $@ $(LIBS)
 
 rc.o: $(BASE).rc 
-	$(TOOLS)\windres $< -O coff -o $@
+	$(TOOLS)\$(WRNAME) $< -O coff -o $@
 
 # DO NOT DELETE
 

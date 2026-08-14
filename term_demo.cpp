@@ -36,7 +36,8 @@ static uint cyClient = 0 ;
 
 // static HMENU hMainMenu = NULL ;
 
-static CStatusBar *MainStatusBar = NULL;
+// static CStatusBar *MainStatusBar = NULL;
+static std::unique_ptr<CStatusBar> MainStatusBar {};
 // static HWND hToolTip ;  /* Tooltip handle */
 
 //  user-defined Windows messages
@@ -66,7 +67,8 @@ void status_message(uint idx, char *msgstr)
 //****************************************************************************
 //lint -esym(749, TERM_INFO, TERM_QUERY)
 //  indices into term_atable[]
-enum {
+// enum {
+enum class eTermAttr : uint8_t {
 TERM_NORMAL = 0,
 TERM_INFO,
 TERM_QUERY,
@@ -93,15 +95,15 @@ static attrib_table_t term_atable[NUM_TERM_ATTR_ENTRIES] = {
 static void set_local_terminal_colors(void)
 {
    COLORREF std_bgnd = GetSysColor(COLOR_WINDOW) ;
-   term_atable[TERM_NORMAL].fgnd = GetSysColor(COLOR_WINDOWTEXT) ;
-   term_atable[TERM_NORMAL].bgnd = std_bgnd ;
+   term_atable[(uint) eTermAttr::TERM_NORMAL].fgnd = GetSysColor(COLOR_WINDOWTEXT) ;
+   term_atable[(uint) eTermAttr::TERM_NORMAL].bgnd = std_bgnd ;
 
    //  set standard background for other color sets which use it
-   term_atable[TERM_PLAYER_HIT].bgnd = std_bgnd ;
-   term_atable[TERM_MONSTER_HIT].bgnd = std_bgnd ;
-   term_atable[TERM_RUNESTAFF].bgnd = std_bgnd ;
-   term_atable[TERM_DEATH].bgnd = std_bgnd ;
-   term_atable[TERM_ATMOSPHERE].bgnd = std_bgnd ;
+   term_atable[(uint) eTermAttr::TERM_PLAYER_HIT].bgnd = std_bgnd ;
+   term_atable[(uint) eTermAttr::TERM_MONSTER_HIT].bgnd = std_bgnd ;
+   term_atable[(uint) eTermAttr::TERM_RUNESTAFF].bgnd = std_bgnd ;
+   term_atable[(uint) eTermAttr::TERM_DEATH].bgnd = std_bgnd ;
+   term_atable[(uint) eTermAttr::TERM_ATMOSPHERE].bgnd = std_bgnd ;
 }
 
 //********************************************************************
@@ -125,7 +127,7 @@ int termout(const char *fmt, ...)
 
    va_start(al, fmt);   //lint !e1055 !e530
    vsprintf(consoleBuffer, fmt, al);   //lint !e64
-   set_term_attr(TERM_NORMAL);
+   set_term_attr((uint) eTermAttr::TERM_NORMAL);
    term_put(consoleBuffer);
    va_end(al);
    return 1;
@@ -142,7 +144,7 @@ int term_append(const char *fmt, ...)
 
    va_start(al, fmt);   //lint !e1055 !e530
    vsprintf(consoleBuffer, fmt, al);   //lint !e64
-   set_term_attr(TERM_NORMAL) ;
+   set_term_attr((uint) eTermAttr::TERM_NORMAL) ;
    term_append(consoleBuffer);
    va_end(al);
    return 1;
@@ -159,7 +161,7 @@ int term_replace(const char *fmt, ...)
 
    va_start(al, fmt);   //lint !e1055 !e530
    vsprintf(consoleBuffer, fmt, al);   //lint !e64
-   set_term_attr(TERM_NORMAL) ;
+   set_term_attr((uint) eTermAttr::TERM_NORMAL) ;
    term_replace(consoleBuffer);
    va_end(al);
    return 1;
@@ -229,7 +231,8 @@ static void do_init_dialog(HWND hwnd)
    //****************************************************************
    //  create/configure status bar
    //****************************************************************
-   MainStatusBar = new CStatusBar(hwnd) ;
+   // MainStatusBar = new CStatusBar(hwnd) ;
+   MainStatusBar = std::make_unique<CStatusBar>(hwnd);
    MainStatusBar->MoveToBottom(cxClient, cyClient) ;
    //  re-position status-bar parts
    {
