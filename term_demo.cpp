@@ -50,20 +50,6 @@ typedef struct attrib_table_s {
    COLORREF bgnd ;
 } attrib_table_t ;
 
-//*******************************************************************
-//lint -esym(714, status_message)
-//lint -esym(759, status_message)
-//lint -esym(765, status_message)
-void status_message(char *msgstr)
-{
-   MainStatusBar->show_message(msgstr);
-}
-
-void status_message(uint idx, char *msgstr)
-{
-   MainStatusBar->show_message(idx, msgstr);
-}
-
 //****************************************************************************
 //lint -esym(749, TERM_INFO, TERM_QUERY)
 //  indices into term_atable[]
@@ -114,6 +100,20 @@ static void set_term_attr(uint atidx)
       return ;
    }
    term_set_attr(term_atable[atidx].fgnd, term_atable[atidx].bgnd) ;
+}
+
+//*******************************************************************
+//lint -esym(714, status_message)
+//lint -esym(759, status_message)
+//lint -esym(765, status_message)
+void status_message(char *msgstr)
+{
+   MainStatusBar->show_message(msgstr);
+}
+
+void status_message(uint idx, char *msgstr)
+{
+   MainStatusBar->show_message(idx, msgstr);
 }
 
 //********************************************************************
@@ -223,7 +223,6 @@ static void do_init_dialog(HWND hwnd)
    cxClient = (myRect.right - myRect.left) ;
    cyClient = (myRect.bottom - myRect.top) ;
 
-   // center_window() ;
    center_dialog_on_screen(hwnd);
    //  setting main menu, breaks status bar !!
    //  setup_main_menu(hwnd) ;
