@@ -1,7 +1,7 @@
 #https://clang.llvm.org/extra/clang-tidy/#id2
 
 # checks to revisit once this is under control:
-# cppcoreguidelines-pro-bounds-constant-array-index — revisit w/ gsl::at, not urgent
+# cppcoreguidelines-pro-bounds-constant-array-index -- revisit w/ gsl::at, not urgent
 # cppcoreguidelines-init-variables
 # modernize-use-nullptr
 # modernize-deprecated-headers
@@ -53,5 +53,4 @@ Checks: >
   -cppcoreguidelines-avoid-do-while,
   -modernize-use-default-member-init,
   performance-*,
-  -performance-no-int-to-ptr,
   

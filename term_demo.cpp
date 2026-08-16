@@ -5,6 +5,8 @@
 //  Written by:  Dan Miller
 //****************************************************************************
 
+#define  USE_WIDTH_RESIZE
+
 static const char *Version = "Terminal program, Version 1.01" ;
 
 #include <windows.h>
@@ -61,6 +63,17 @@ static int dy_frame = 0;   //  window height - client height
 // (top controls + a minimum usable listview height + status bar + frame)
 // and never modified afterward.
 static uint min_application_window_height = 0;
+
+#ifdef USE_WIDTH_RESIZE
+// Claude 08/16/26 - width-resize floor, same shape as min_application_window_height
+// above. MIN_TERMINAL_VISIBLE_DX is a placeholder client-width floor (pixels) --
+// this app has no existing "minimum usable width" concept the way it has
+// MIN_LISTVIEW_VISIBLE_DY, so pick a real value based on what your top control
+// row actually needs (e.g. right edge of your last button + margin) rather than
+// trusting this default.
+#define  MIN_TERMINAL_VISIBLE_DX   200
+static uint min_application_window_width = 0;
+#endif
 
 //*******************************************************************
 //  *** END Claude resize data block
@@ -241,18 +254,51 @@ int put_color_msg(uint idx, const char *fmt, ...)
 //    // update_summary_options_menu() ;   //  initial setup
 // }
 
+//****************************************************************************
+//  Claude 08/16/26 - status-bar part boundaries are computed as a proportion
+//  of cxClient. Under fixed width this only ever needs to run once (at init),
+//  but under USE_WIDTH_RESIZE it needs to be redone whenever width changes --
+//  split out of do_init_dialog so resize_font_dialog() can call it too.
+//****************************************************************************
+static void update_statusbar_parts(void)
+{
+   int sbparts[3];
+   sbparts[0] = (int) (6 * cxClient / 10) ;
+   sbparts[1] = (int) (8 * cxClient / 10) ;
+   sbparts[2] = -1;
+   MainStatusBar->SetParts(3, &sbparts[0]);
+}
+
 //****************************************************************
 //  Claude 08/15/26 - restore previously-saved window size/position
 //  from the .ini file. client_height/window_left/window_top were
 //  populated by init_config() above (which creates a default config
 //  file if one doesn't exist yet, so these are always valid here --
-//  no first-run guard needed). Width is never saved/restored since
-//  it's always locked to the dialog's fixed layout.
+//  no first-run guard needed).
+//  Claude 08/16/26 - width is only ever saved/restored under
+//  USE_WIDTH_RESIZE; otherwise it stays locked to the dialog's fixed
+//  layout, same as before.
 //****************************************************************
 static void restore_dialog_settings(HWND hwnd)
 {
+#ifdef USE_WIDTH_RESIZE
+   uint restored_win_width  = client_width + (uint) dx_frame ;
+#else
    uint restored_win_width  = cxClient + (uint) dx_frame ;   //  width never changes
+#endif
    uint restored_win_height = client_height + (uint) dy_frame ;
+
+#ifdef USE_WIDTH_RESIZE
+   //  clamp width to the same bounds WM_GETMINMAXINFO enforces --
+   //  screen resolution may have changed since this was last saved
+   if (restored_win_width < min_application_window_width) {
+      restored_win_width = min_application_window_width ;
+   }
+   uint max_win_width = (uint) get_screen_width() ;
+   if (restored_win_width > max_win_width) {
+      restored_win_width = max_win_width ;
+   }
+#endif
 
    //  clamp height to the same bounds WM_GETMINMAXINFO enforces --
    //  screen resolution may have changed since this was last saved
@@ -332,13 +378,7 @@ static void do_init_dialog(HWND hwnd)
    MainStatusBar = std::make_unique<CStatusBar>(hwnd);
    MainStatusBar->MoveToBottom(cxClient, cyClient) ;
    //  re-position status-bar parts
-   {
-   int sbparts[3];
-   sbparts[0] = (int) (6 * cxClient / 10) ;
-   sbparts[1] = (int) (8 * cxClient / 10) ;
-   sbparts[2] = -1;
-   MainStatusBar->SetParts(3, &sbparts[0]);
-   }
+   update_statusbar_parts() ;
    
    // Claude 08/14/26 - the real, permanent floor for WM_GETMINMAXINFO.
    // Same shape as resize_font_dialog's live layout math, just solved for
@@ -347,6 +387,12 @@ static void do_init_dialog(HWND hwnd)
    // again -- see the comment on the variable itself.
    min_application_window_height = get_terminal_top() + MIN_LISTVIEW_VISIBLE_DY
       + MainStatusBar->height() + (uint) get_dy_offset() + (uint) dy_frame ;
+
+#ifdef USE_WIDTH_RESIZE
+   // Claude 08/16/26 - same shape as min_application_window_height above,
+   // computed once here and never touched again.
+   min_application_window_width = MIN_TERMINAL_VISIBLE_DX + (uint) dx_frame ;
+#endif
 
    //****************************************************************
    //  create/configure terminal
@@ -381,22 +427,49 @@ static void resize_font_dialog()
    //  if resizing on drag-and-drop, re-read main-dialog size
    // BOOL gcr_ok = 
    GetClientRect(hwndMain, &myRect) ;
-   // new_window_width  = (uint) (myRect.right - myRect.left) ;
    uint new_window_height = (uint) (myRect.bottom - myRect.top) ;
+#ifdef USE_WIDTH_RESIZE
+   uint new_window_width  = (uint) (myRect.right - myRect.left) ;
+#endif
    // syslog("resize: cyClient: %u, new_window_height: %u, rect=(%ld,%ld,%ld,%ld), gcr_ok=%d, err=%lu\n",
    //    cyClient, new_window_height,
    //    (long) myRect.left, (long) myRect.top, (long) myRect.right, (long) myRect.bottom,
    //    (int) gcr_ok, gcr_ok ? 0ul : (unsigned long) GetLastError());
 
-   if (cyClient == new_window_height  ||  new_window_height == 0) {
+   if (new_window_height == 0) {
        return ;
    }
 
+#ifdef USE_WIDTH_RESIZE
+   // Claude 08/16/26 - unlike the fixed-width case, a live drag can now
+   // change either dimension independently (or both), so bail only when
+   // neither has actually moved.
+   bool height_changed = (cyClient != new_window_height) ;
+   bool width_changed  = (cxClient != new_window_width  &&  new_window_width != 0) ;
+   if (!height_changed  &&  !width_changed) {
+      return ;
+   }
    cyClient = new_window_height ;
+   if (width_changed) {
+      cxClient = new_window_width ;
+   }
+#else
+   if (cyClient == new_window_height) {
+      return ;
+   }
+   cyClient = new_window_height ;
+#endif
 
    int dy_offset = get_dy_offset() ;
 
    MainStatusBar->MoveToBottom(cxClient, cyClient-1) ;
+#ifdef USE_WIDTH_RESIZE
+   //  status-bar part boundaries are proportional to cxClient --
+   //  redo them whenever width actually moved
+   if (width_changed) {
+      update_statusbar_parts() ;
+   }
+#endif
    //  resize the terminal (cols)
    int dyi = (int) cyClient - dy_offset - (int) get_terminal_top() - MainStatusBar->height() ;
    term_resize(cxClient, dyi);
@@ -481,7 +554,7 @@ bool do_sizing(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 //*************************************************************************************
 static bool do_getminmaxinfo(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-   LPMINMAXINFO lpTemp = (LPMINMAXINFO) lParam;
+   LPMINMAXINFO lpTemp = (LPMINMAXINFO) lParam; //  NOLINT(performance-no-int-to-ptr)
    POINT        ptTemp;
    // syslog("set minimum to %ux%u\n", cxClient, cyClient);
    
@@ -496,6 +569,18 @@ static bool do_getminmaxinfo(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
    //  min_application_window_height is computed once in do_init_dialog 
    //  and never changes, which is what a track-size floor needs to be.
    
+#ifdef USE_WIDTH_RESIZE
+   // Claude 08/16/26 - width is no longer pinned min==max; it gets its own
+   // floor/ceiling the same way height already does.
+   //  set minimum dimensions
+   ptTemp.x = (LONG) min_application_window_width ;
+   ptTemp.y = (LONG) min_application_window_height ;
+   lpTemp->ptMinTrackSize = ptTemp;
+   //  set maximum dimensions
+   ptTemp.x = (LONG) get_screen_width() ;
+   ptTemp.y = (LONG) get_screen_height() ;
+   lpTemp->ptMaxTrackSize = ptTemp;
+#else
    //  set minimum dimensions
    ptTemp.x = (LONG) cxClient + dx_frame ;
    ptTemp.y = (LONG) min_application_window_height ;
@@ -506,6 +591,7 @@ static bool do_getminmaxinfo(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
    ptTemp.x = (LONG) cxClient + dx_frame ;
    ptTemp.y = get_screen_height() ;
    lpTemp->ptMaxTrackSize = ptTemp;
+#endif
    // lpTemp->ptMaxSize = ptTemp;
    // syslog("gmmi: dxmin: %u, dxmax: %u, dymin: %u, dymax: %ld\n", dxmin, ptTemp.x, dymin, (long) ptTemp.y);
    return true ;
@@ -569,7 +655,10 @@ static LRESULT CALLBACK TermProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
       do_size(hwnd, message, wParam, lParam) ;
       return TRUE ;
 
-   //  this is only required if width is fixed in dialog
+#ifndef USE_WIDTH_RESIZE
+   //  this is only required if width is fixed in dialog -- it's what
+   //  clamps out the WindowBlinds side-to-side wobble.
+   //  Not applicable once width is actually allowed to change.
    case WM_WINDOWPOSCHANGING:
       {
       WINDOWPOS* pos = (WINDOWPOS*)lParam;
@@ -578,6 +667,7 @@ static LRESULT CALLBACK TermProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
       break;
       }      
       return TRUE ;
+#endif
 
    //***********************************************************************************************
    //  04/16/14 - unfortunately, I cannot use WM_SIZE, nor any other message, to draw my graphics,
