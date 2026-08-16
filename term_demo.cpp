@@ -24,15 +24,8 @@ static HINSTANCE g_hinst = 0;
 
 static HWND hwndMain ;
 
-//lint -esym(714, dbg_flags)
-//lint -esym(759, dbg_flags)
-//lint -esym(765, dbg_flags)
-uint dbg_flags = 0
-   // | DBG_WINMSGS
-   ;
-
 static uint cxClient = 0 ;
-static uint cyClient = 0 ;
+uint cyClient = 0 ;
 
 // static HMENU hMainMenu = NULL ;
 
@@ -251,6 +244,52 @@ int put_color_msg(uint idx, const char *fmt, ...)
 //    // update_summary_options_menu() ;   //  initial setup
 // }
 
+//****************************************************************
+//  Claude 08/15/26 - restore previously-saved window size/position
+//  from the .ini file. client_height/window_left/window_top were
+//  populated by init_config() above (which creates a default config
+//  file if one doesn't exist yet, so these are always valid here --
+//  no first-run guard needed). Width is never saved/restored since
+//  it's always locked to the dialog's fixed layout.
+//****************************************************************
+static void restore_dialog_settings(HWND hwnd)
+{
+   uint restored_win_width  = cxClient + (uint) dx_frame ;   //  width never changes
+   uint restored_win_height = client_height + (uint) dy_frame ;
+
+   //  clamp height to the same bounds WM_GETMINMAXINFO enforces --
+   //  screen resolution may have changed since this was last saved
+   if (restored_win_height < min_application_window_height) {
+      restored_win_height = min_application_window_height ;
+   }
+   uint max_win_height = (uint) get_screen_height() ;
+   if (restored_win_height > max_win_height) {
+      restored_win_height = max_win_height ;
+   }
+
+   //  clamp position to the current monitor (get_screen_width/height
+   //  reflect get_monitor_dimens(hwnd), already called above) so a saved
+   //  position from a monitor that's since been unplugged, or a screen
+   //  res that's since shrunk, doesn't put us off-screen
+   uint restored_left = window_left ;
+   uint restored_top  = window_top ;
+   uint scr_cx = (uint) get_screen_width() ;
+   uint scr_cy = (uint) get_screen_height() ;
+   if (restored_left + restored_win_width > scr_cx) {
+      restored_left = (restored_win_width < scr_cx) ? (scr_cx - restored_win_width) : 0 ;
+   }
+   if (restored_top + restored_win_height > scr_cy) {
+      restored_top = (restored_win_height < scr_cy) ? (scr_cy - restored_win_height) : 0 ;
+   }
+
+   //  applying this here (after all child controls exist) triggers
+   //  WM_SIZE synchronously, which runs resize_font_dialog() and lays
+   //  out the status bar/listview/etc. for the restored height --
+   //  no separate relayout call needed
+   SetWindowPos(hwnd, NULL, (int) restored_left, (int) restored_top,
+      (int) restored_win_width, (int) restored_win_height, SWP_NOZORDER) ;
+}
+
 //***********************************************************************
 static void do_init_dialog(HWND hwnd)
 {
@@ -283,6 +322,8 @@ static void do_init_dialog(HWND hwnd)
    // syslog("frame delta: dx_frame=%d, dy_frame=%d\n", dx_frame, dy_frame) ;
    }
 
+   init_config();
+   
    center_dialog_on_screen(hwnd);
    //  setting main menu, breaks status bar !!
    //  setup_main_menu(hwnd) ;
@@ -323,6 +364,9 @@ static void do_init_dialog(HWND hwnd)
    
    sprintf(msgstr, "monitor dimens: %ux%u pixels", get_screen_width(), get_screen_height());
    termout(msgstr);
+   
+   //  restore previously-saved window size/position from the .ini file. 
+   restore_dialog_settings(hwnd);
 }
 
 //********************************************************************************************
@@ -365,7 +409,7 @@ static void resize_font_dialog()
    status_message(msgstr);
    // termout(msgstr);
    
-   // save_cfg_file();
+   save_cfg_file();
 }
 
 //*************************************************************************************
@@ -510,6 +554,16 @@ static LRESULT CALLBACK TermProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
    case WM_NOTIFY:
       return term_notify(hwnd, lParam) ;
 
+   case WM_EXITSIZEMOVE:
+      {
+      RECT rect ;
+      GetWindowRect(hwnd, &rect);
+      window_top = rect.top ;
+      window_left = rect.left ;
+      save_cfg_file();
+      }
+      break ;
+   
    case WM_GETMINMAXINFO:
       do_getminmaxinfo(hwnd, message, wParam, lParam) ;
       return FALSE;
@@ -580,6 +634,7 @@ static LRESULT CALLBACK TermProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
    {
    g_hinst = hInstance;
+   load_exec_filename() ;     //  get our executable name
 
    HWND hwnd = CreateDialog(g_hinst, MAKEINTRESOURCE(IDD_MAIN_DIALOG), NULL, (DLGPROC) TermProc) ;
    if (hwnd == NULL) {

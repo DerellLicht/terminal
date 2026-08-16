@@ -16,8 +16,7 @@
 #define  DBG_POLLING       0x20
 #define  DBG_ETHERNET      0x40
 
-extern uint dbg_flags ;
-
+extern uint cyClient ;
 //**************************************************************
 //  function prototypes
 //**************************************************************
@@ -25,4 +24,13 @@ extern uint dbg_flags ;
 //  term_demo.cpp
 void status_message(char *msgstr);
 void status_message(uint idx, char *msgstr);
+
+//  config.cpp
+extern uint dbg_flags ;
+extern uint window_top ;
+extern uint window_left ;
+extern uint client_height ;
+
+LRESULT save_cfg_file(void);
+LRESULT init_config(void);
 
