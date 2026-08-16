@@ -24,6 +24,7 @@ static HINSTANCE g_hinst = 0;
 
 static HWND hwndMain ;
 
+//  both of these fields are used by config.cpp to update ini file
 uint cxClient = 0 ;
 uint cyClient = 0 ;
 
@@ -31,10 +32,6 @@ uint cyClient = 0 ;
 
 // static CStatusBar *MainStatusBar = NULL;
 static std::unique_ptr<CStatusBar> MainStatusBar {};
-// static HWND hToolTip ;  /* Tooltip handle */
-
-//  user-defined Windows messages
-// static const UINT WM_ARE_YOU_ME = (WM_USER + 106) ;
 
 //*******************************************************************
 //  *** BEGIN Claude resize data block
