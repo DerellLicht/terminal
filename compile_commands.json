@@ -126,5 +126,21 @@
    "term_demo.o"
   ],
   "file": "term_demo.cpp"
+ },
+ {
+  "directory": "D:\\SourceCode\\Git\\terminal",
+  "arguments": [
+   "d:/llvm/bin/i686-w64-mingw32-clang++",
+   "-Wall",
+   "-O2",
+   "-Weffc++",
+   "-c",
+   "-Wno-write-strings",
+   "-Ider_libs",
+   "config.cpp",
+   "-o",
+   "config.o"
+  ],
+  "file": "config.cpp"
  }
 ]
