@@ -656,14 +656,14 @@ static LRESULT CALLBACK TermProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM
       return TRUE ;
 
 #ifndef USE_WIDTH_RESIZE
-   //  this is only required if width is fixed in dialog -- it's what
-   //  clamps out the WindowBlinds side-to-side wobble.
+   //  this is only required if width is fixed in dialog -- 
+   //  it's what clamps out the WindowBlinds side-to-side wobble.
    //  Not applicable once width is actually allowed to change.
    case WM_WINDOWPOSCHANGING:
       {
       WINDOWPOS* pos = (WINDOWPOS*)lParam;
       if (!(pos->flags & SWP_NOSIZE))
-         pos->cx = cxClient;   // hardcoded, no private_data needed
+         pos->cx = cxClient;
       break;
       }      
       return TRUE ;
