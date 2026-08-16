@@ -16,6 +16,7 @@
 #define  DBG_POLLING       0x20
 #define  DBG_ETHERNET      0x40
 
+extern uint cxClient ;
 extern uint cyClient ;
 //**************************************************************
 //  function prototypes
@@ -30,6 +31,7 @@ extern uint dbg_flags ;
 extern uint window_top ;
 extern uint window_left ;
 extern uint client_height ;
+extern uint client_width ;
 
 LRESULT save_cfg_file(void);
 LRESULT init_config(void);

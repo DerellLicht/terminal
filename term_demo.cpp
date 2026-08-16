@@ -24,7 +24,7 @@ static HINSTANCE g_hinst = 0;
 
 static HWND hwndMain ;
 
-static uint cxClient = 0 ;
+uint cxClient = 0 ;
 uint cyClient = 0 ;
 
 // static HMENU hMainMenu = NULL ;

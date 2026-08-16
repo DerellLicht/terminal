@@ -22,6 +22,7 @@
 uint window_left = 500 ;
 uint window_top = 200 ;
 uint client_height = 300 ;
+uint client_width = 300 ;
 static char ini_name[MAX_PATH_LEN+1] = "" ;
 
 //****************************************************************************
@@ -42,6 +43,7 @@ static void strip_comments(char *bfr)
 //****************************************************************************
 LRESULT save_cfg_file(void)
 {
+   client_width  = cxClient ;
    client_height = cyClient ;
    char *fname = ini_name ;
    // FILE *fd = fopen(fname, "wt") ;
@@ -55,6 +57,7 @@ LRESULT save_cfg_file(void)
    fprintf(fd.get(), "dbg_flags=0x%X\n", dbg_flags) ;
    fprintf(fd.get(), "window_top=%u\n", window_top) ;
    fprintf(fd.get(), "window_left=%u\n", window_left) ;
+   fprintf(fd.get(), "client_width=%u\n", client_width) ;
    fprintf(fd.get(), "client_height=%u\n", client_height) ;
    // fclose(fd) ;
    return ERROR_SUCCESS;
@@ -114,6 +117,9 @@ LRESULT init_config(void)
       } else
       if (strcmp(inpstr, "window_left") == 0) {
          window_left = (unsigned) strtol(tl, NULL, 10) ;
+      } else
+      if (strcmp(inpstr, "client_width") == 0) {
+         client_width = (unsigned) strtol(tl, NULL, 10) ;
       } else
       if (strcmp(inpstr, "client_height") == 0) {
          client_height = (unsigned) strtol(tl, NULL, 10) ;
