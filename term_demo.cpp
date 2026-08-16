@@ -1,11 +1,11 @@
 //****************************************************************************
-//  Copyright (c) 1985-2025  Daniel D Miller
+//  Copyright (c) 1985-2026  Daniel D Miller
 //  Demo program for terminal class
 //
 //  Written by:  Dan Miller
 //****************************************************************************
 
-static const char *Version = "Terminal program, Version 1.00" ;
+static const char *Version = "Terminal program, Version 1.01" ;
 
 #include <windows.h>
 #include <stdio.h>   //  vsprintf, sprintf, which supports %f
@@ -43,6 +43,38 @@ static std::unique_ptr<CStatusBar> MainStatusBar {};
 //  user-defined Windows messages
 // static const UINT WM_ARE_YOU_ME = (WM_USER + 106) ;
 
+//*******************************************************************
+//  *** BEGIN Claude resize data block
+//*******************************************************************
+// Claude 08/14/26 - smallest listview height (pixels) we'll allow the
+// live-resize floor to shrink down to, so a few rows stay visible/usable
+// no matter how far the user drags the bottom edge up.
+#define  MIN_LISTVIEW_VISIBLE_DY   80
+
+// Claude 08/14/26
+// MINMAXINFO's ptMinTrackSize/ptMaxTrackSize are WINDOW (outer) dimensions,
+// not client-area dimensions -- but cxClient/cyClient come from GetClientRect(),
+// which excludes the caption/border. Pinning ptMinTrackSize.x==ptMaxTrackSize.x
+// directly to cxClient tells Windows "the whole window, borders included, is
+// only as wide as the client area" -- i.e. a few pixels *too narrow* by exactly
+// the border width. That's the "shrinks by a few pixels on first width-drag"
+// symptom. Fix: measure the real window-minus-client delta once at init, and
+// add it back in whenever a track size is derived from a client dimension.
+static int dx_frame = 0;   //  window width  - client width
+static int dy_frame = 0;   //  window height - client height
+
+// Claude 08/14/26 - term_window_height tracks the LISTVIEW's current height
+// and gets recalculated on every resize (see resize_font_dialog). It is NOT
+// a safe floor for WM_GETMINMAXINFO, because by the time a live drag is
+// underway its value has already moved. min_application_window_height is
+// the true floor: computed once in do_init_dialog from the fixed pieces
+// (top controls + a minimum usable listview height + status bar + frame)
+// and never modified afterward.
+static uint min_application_window_height = 0;
+
+//*******************************************************************
+//  *** END Claude resize data block
+//*******************************************************************
 //*****************************************************************
 //lint -esym(756, attrib_table_t)
 typedef struct attrib_table_s {
@@ -115,6 +147,28 @@ void status_message(uint idx, char *msgstr)
 {
    MainStatusBar->show_message(idx, msgstr);
 }
+
+//****************************************************************************
+//  small font-dependent layout fudge factor; shared by do_init_dialog's
+//  min-height calculation and resize_font_dialog's live layout so the two
+//  stay consistent with each other.
+//****************************************************************************
+static int get_dy_offset(void)
+{
+   return 0 ;
+}
+
+//****************************************************************************
+static uint get_terminal_top(void)
+{
+   static uint local_ctrl_top = 0 ;
+   if (local_ctrl_top == 0) {
+      local_ctrl_top = get_bottom_line(hwndMain, IDB_CLOSE) ;
+      local_ctrl_top += 3 ;
+      // syslog("CommPort: ctrl_top = %u, or %u\n", local_ctrl_top, win_ctrl_top+3) ;
+   }
+   return local_ctrl_top ;
+}  //lint !e715
 
 //********************************************************************
 //lint -esym(714, termout)
@@ -211,17 +265,23 @@ static void do_init_dialog(HWND hwnd)
    hwndMain = hwnd ;
    get_monitor_dimens(hwnd);
 
-   // set_up_working_spaces(hwnd) ; //  do this *before* tooltips !!
-   //***************************************************************************
-   //  add tooltips and bitmaps
-   //***************************************************************************
-   // create_and_add_tooltips(hwnd, 150, 100, 10000, main_tooltips);
-
    RECT myRect ;
    // GetWindowRect(hwnd, &myRect) ;
    GetClientRect(hwnd, &myRect) ;
    cxClient = (myRect.right - myRect.left) ;
    cyClient = (myRect.bottom - myRect.top) ;
+
+   // Claude 08/14/26 - measure actual border/caption size once, from live
+   // window+client rects, rather than guessing at SM_CXFRAME/SM_CYCAPTION
+   // (which can be wrong under theming/DPI). Used to convert client-size
+   // values into the window-size values WM_GETMINMAXINFO actually wants.
+   {
+   RECT winRect ;
+   GetWindowRect(hwnd, &winRect) ;
+   dx_frame = (winRect.right - winRect.left) - (int) cxClient ;
+   dy_frame = (winRect.bottom - winRect.top) - (int) cyClient ;
+   // syslog("frame delta: dx_frame=%d, dy_frame=%d\n", dx_frame, dy_frame) ;
+   }
 
    center_dialog_on_screen(hwnd);
    //  setting main menu, breaks status bar !!
@@ -242,6 +302,14 @@ static void do_init_dialog(HWND hwnd)
    MainStatusBar->SetParts(3, &sbparts[0]);
    }
    
+   // Claude 08/14/26 - the real, permanent floor for WM_GETMINMAXINFO.
+   // Same shape as resize_font_dialog's live layout math, just solved for
+   // the smallest acceptable listview height (MIN_LISTVIEW_VISIBLE_DY)
+   // instead of the current one. Computed once, here, and never touched
+   // again -- see the comment on the variable itself.
+   min_application_window_height = get_terminal_top() + MIN_LISTVIEW_VISIBLE_DY
+      + MainStatusBar->height() + (uint) get_dy_offset() + (uint) dy_frame ;
+
    //****************************************************************
    //  create/configure terminal
    //****************************************************************
@@ -256,8 +324,147 @@ static void do_init_dialog(HWND hwnd)
    termout(msgstr);
 }
 
+//********************************************************************************************
+//  okay, this function originally gave inaccurate results,
+//  because the rectangle passed by WM_SIZING was from GetWindowRect(),
+//  which included the unwanted border area, rather than from
+//  GetClientRect(), which works with get_bottom_line().
+//********************************************************************************************
+static void resize_font_dialog()
+{
+   RECT myRect ;
+   // syslog("resize terminal, drag=%s\n", (resize_on_drag) ? "true" : "false") ;
+
+   //  if resizing on drag-and-drop, re-read main-dialog size
+   // BOOL gcr_ok = 
+   GetClientRect(hwndMain, &myRect) ;
+   // new_window_width  = (uint) (myRect.right - myRect.left) ;
+   uint new_window_height = (uint) (myRect.bottom - myRect.top) ;
+   // syslog("resize: cyClient: %u, new_window_height: %u, rect=(%ld,%ld,%ld,%ld), gcr_ok=%d, err=%lu\n",
+   //    cyClient, new_window_height,
+   //    (long) myRect.left, (long) myRect.top, (long) myRect.right, (long) myRect.bottom,
+   //    (int) gcr_ok, gcr_ok ? 0ul : (unsigned long) GetLastError());
+
+   if (cyClient == new_window_height  ||  new_window_height == 0) {
+       return ;
+   }
+
+   cyClient = new_window_height ;
+
+   int dy_offset = get_dy_offset() ;
+
+   MainStatusBar->MoveToBottom(cxClient, cyClient-1) ;
+   //  resize the terminal (cols)
+   int dyi = (int) cyClient - dy_offset - (int) get_terminal_top() - MainStatusBar->height() ;
+   term_resize(cxClient, dyi);
+   
+   // save_cfg_file();
+}
+
+//*************************************************************************************
+// Claude: WM_SIZE — this is the only place you actually move/resize child controls. 
+// Dialogs don't auto-relayout children on resize; you compute the height delta 
+// and grow the listview by exactly that much, leaving the top controls alone.
+//*************************************************************************************
+// static const char *size_type_name(WPARAM wParam)
+// {
+//    switch (wParam) {
+//    case SIZE_RESTORED:  return "SIZE_RESTORED" ;
+//    case SIZE_MINIMIZED: return "SIZE_MINIMIZED" ;
+//    case SIZE_MAXIMIZED: return "SIZE_MAXIMIZED" ;
+//    case SIZE_MAXSHOW:   return "SIZE_MAXSHOW" ;
+//    case SIZE_MAXHIDE:   return "SIZE_MAXHIDE" ;
+//    default:             return "SIZE_??" ;
+//    }
+// }
+
+static bool do_size(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+   // syslog("do_size: type=%s, lParam dx=%d dy=%d, IsIconic=%d\n",
+   //    size_type_name(wParam), (int) LOWORD(lParam), (int) HIWORD(lParam),
+   //    (int) IsIconic(hwnd));
+   resize_font_dialog();
+   return true ;
+}
+
+//*************************************************************************************
+// Claude: WM_SIZING itself isn't needed for this shape of problem — 
+// it's for constraining to an aspect ratio or snapping to a grid during the drag. 
+// Locking width via WM_GETMINMAXINFO is simpler and sufficient here.
+//*************************************************************************************
+// static 
+bool do_sizing(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+   //  handle main-dialog resizing
+   switch (message) {
+   case WM_SIZING:
+      switch (wParam) {
+      case WMSZ_BOTTOMLEFT:
+      case WMSZ_BOTTOMRIGHT:
+      case WMSZ_TOPLEFT:
+      case WMSZ_TOPRIGHT:
+      case WMSZ_LEFT:
+      case WMSZ_RIGHT:
+      case WMSZ_TOP:
+      case WMSZ_BOTTOM:
+         resize_font_dialog();
+         return true;
+
+      default:
+         break;
+      }
+      break;
+   }  //lint !e744
+   return false ;
+}
+
+//*************************************************************************************
+//  DDM 01/29/17 - These minima are not actually working;
+//  Perhaps this is due to Windowblinds ??
+//  Yes; this works fine on standard Windows 7
+//*************************************************************************************
+//  Claude 08/12/26
+//  WM_GETMINMAXINFO — this is where you lock the width and bound the height.
+//  Setting ptMinTrackSize.x == ptMaxTrackSize.x (both equal to the dialog's current
+//  width) is enough to make the left/right borders un-draggable — you don't need
+//  WM_SIZING for that. Height min comes from your own "smallest useful layout"
+//  calculation; height max comes from SystemParametersInfo(SPI_GETWORKAREA, ...) 
+//  so the dialog can't be dragged off the bottom of the screen.
+//*************************************************************************************
+static bool do_getminmaxinfo(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+   LPMINMAXINFO lpTemp = (LPMINMAXINFO) lParam;
+   POINT        ptTemp;
+   // syslog("set minimum to %ux%u\n", cxClient, cyClient);
+   
+   //  Claude 08/14/26 - cxClient is a CLIENT-area size; ptMinTrackSize/
+   //  ptMaxTrackSize must be WINDOW sizes (border+caption included), so add
+   //  the frame delta captured at init. Width is pinned min==max to lock
+   //  horizontal resize; that pin must land on the real current window
+   //  width or Windows will fight the live window size every time this
+   //  fires and can degenerate the rect mid-drag.
+   //
+   //  Height floor comes from min_application_window_height.
+   //  min_application_window_height is computed once in do_init_dialog 
+   //  and never changes, which is what a track-size floor needs to be.
+   
+   //  set minimum dimensions
+   ptTemp.x = (LONG) cxClient + dx_frame ;
+   ptTemp.y = (LONG) min_application_window_height ;
+   lpTemp->ptMinTrackSize = ptTemp;
+   // uint dxmin = ptTemp.x ;
+   // uint dymin = ptTemp.y ;
+   //  set maximum dimensions
+   ptTemp.x = (LONG) cxClient + dx_frame ;
+   ptTemp.y = get_screen_height() ;
+   lpTemp->ptMaxTrackSize = ptTemp;
+   // lpTemp->ptMaxSize = ptTemp;
+   // syslog("gmmi: dxmin: %u, dxmax: %u, dymin: %u, dymax: %ld\n", dxmin, ptTemp.x, dymin, (long) ptTemp.y);
+   return true ;
+}
+
 //***********************************************************************
-static LRESULT CALLBACK TermProc (HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+static LRESULT CALLBACK TermProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
    static uint line_num = 0 ;
 
@@ -265,7 +472,7 @@ static LRESULT CALLBACK TermProc (HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
    //  debug: log all windows messages
    //***************************************************
    if (dbg_flags & DBG_WINMSGS) {
-      switch (iMsg) {
+      switch (message) {
       //  list messages to be ignored
       case WM_CTLCOLORBTN:
       case WM_CTLCOLORSTATIC:
@@ -283,18 +490,36 @@ static LRESULT CALLBACK TermProc (HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
       case WM_COMMAND:  //  prints its own msgs below
          break;
       default:
-         syslog("TOP [%s]\n", lookup_winmsg_name(iMsg)) ;
+         syslog("TOP [%s]\n", lookup_winmsg_name(message)) ;
          break;
       }
    }
 
-   switch(iMsg) {
+   switch(message) {
    case WM_INITDIALOG:
       do_init_dialog(hwnd) ;
       return TRUE;
 
    case WM_NOTIFY:
       return term_notify(hwnd, lParam) ;
+
+   case WM_GETMINMAXINFO:
+      do_getminmaxinfo(hwnd, message, wParam, lParam) ;
+      return FALSE;
+
+   case WM_SIZE:
+      do_size(hwnd, message, wParam, lParam) ;
+      return TRUE ;
+
+   //  this is only required if width is fixed in dialog
+   case WM_WINDOWPOSCHANGING:
+      {
+      WINDOWPOS* pos = (WINDOWPOS*)lParam;
+      if (!(pos->flags & SWP_NOSIZE))
+         pos->cx = cxClient;   // hardcoded, no private_data needed
+      break;
+      }      
+      return TRUE ;
 
    //***********************************************************************************************
    //  04/16/14 - unfortunately, I cannot use WM_SIZE, nor any other message, to draw my graphics,
@@ -338,7 +563,7 @@ static LRESULT CALLBACK TermProc (HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lP
 
    // default:
    //    return false;
-   }  //lint !e744  switch(iMsg) 
+   }  //lint !e744  switch(message) 
 
    return false;
 }
