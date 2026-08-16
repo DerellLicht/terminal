@@ -315,6 +315,7 @@ static void do_init_dialog(HWND hwnd)
    //****************************************************************
    setup_terminal_window(hwnd, MainStatusBar->height(), IDB_ADD_LINE, IDC_TERMINAL);
    set_local_terminal_colors() ;
+   
    sprintf(msgstr, "terminal size: columns=%u, rows=%u",
       term_get_columns(), term_get_rows());
    status_message(msgstr);
@@ -333,6 +334,7 @@ static void do_init_dialog(HWND hwnd)
 static void resize_font_dialog()
 {
    RECT myRect ;
+   char msgstr[81] ;
    // syslog("resize terminal, drag=%s\n", (resize_on_drag) ? "true" : "false") ;
 
    //  if resizing on drag-and-drop, re-read main-dialog size
@@ -357,6 +359,11 @@ static void resize_font_dialog()
    //  resize the terminal (cols)
    int dyi = (int) cyClient - dy_offset - (int) get_terminal_top() - MainStatusBar->height() ;
    term_resize(cxClient, dyi);
+   
+   sprintf(msgstr, "terminal size: columns=%u, rows=%u",
+      term_get_columns(), term_get_rows());
+   status_message(msgstr);
+   // termout(msgstr);
    
    // save_cfg_file();
 }
