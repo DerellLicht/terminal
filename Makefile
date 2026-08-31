@@ -38,8 +38,6 @@ der_libs/terminal.cpp \
 der_libs/statbar.cpp \
 der_libs/winmsgs.cpp 
 
-LINTFILES=lintdefs.cpp lintdefs.ref.h 
-
 OBJS = $(CSRC:.cpp=.o) rc.o
 
 BASE=terminal
@@ -48,6 +46,13 @@ BIN=$(BASE).exe
 LIBS=
 #LIBS=-lcomctl32 -lhtmlhelp 
 #LIBS=-lgdi32 -lcomctl32 -lhtmlhelp -lolepro32 -lole32 -luuid
+
+# Automatically parse the latest version block
+VERSION := $(shell grep -oE '\[[0-9]+\.[0-9]+\]' CHANGELOG.md | head -n 1 | tr -d '[]')
+DIST_ZIP := $(BASE)V$(VERSION).zip
+
+# Force these action-only targets to always run
+.PHONY: dist release update
 
 #************************************************************
 %.o: %.cpp
@@ -60,11 +65,26 @@ clean:
 	rm -vf $(BIN) $(OBJS) *.zip *.bak *~
 
 dist:
-	rm -f $(BASE).zip
+	rm -f *.zip
 	zip $(BASE).zip *.exe 
 
+# Your new automated release workflow
+release: dist
+	@cmd /C "@echo Preparing GitHub release for v$(VERSION)..."
+	sed -n '/## \['$(VERSION)'\]/,/## \[/p' CHANGELOG.md | sed '$$d' > temp_notes.md
+	gh release create v$(VERSION) ./$(DIST_ZIP) ./CHANGELOG.md --notes-file temp_notes.md
+	rm temp_notes.md
+	@cmd /C "@echo Release v$(VERSION) successfully uploaded to GitHub!"
+	
+# Your new update-in-place pipeline
+update: dist
+	@cmd /C "@echo Updating assets for existing release v$(VERSION)..."
+	@# Uploads and overwrites the .zip file and CHANGELOG.md on GitHub
+	gh release upload v$(VERSION) ./$(DIST_ZIP) ./CHANGELOG.md --clobber
+	@cmd /C "@echo Release v$(VERSION) assets successfully updated on GitHub!"
+
 wc:
-	wc -l *.cpp *.rc
+	wc -l $(CSRC) *.rc
 
 clint:
 	cmd /C "python ..\ClaudeLint.py --exclude der_libs"
@@ -75,17 +95,14 @@ cppc:
 check:
 	cmd /C "d:\llvm\bin\clang-tidy.exe $(CSRC)"
 
-lint:
-	cmd /C "c:\lint9\lint-nt +v -width(160,4) $(LiFLAGS) -ic:\lint9 mingw.lnt -os(_lint.tmp) $(LINTFILES) $(CSRC)"
-
 depend:
 	makedepend $(CFLAGS) $(CSRC)
 
 #************************************************************
-$(BASE).exe: $(OBJS)
+$(BIN): $(OBJS)
 	$(TOOLS)\$(GNAME) $(LFLAGS) $(OBJS) -o $@ $(LIBS)
 
-rc.o: $(BASE).rc 
+rc.o: $(BASE).rc resource.h
 	$(TOOLS)\$(WRNAME) $< -O coff -o $@
 
 # DO NOT DELETE
