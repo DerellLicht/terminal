@@ -66,7 +66,7 @@ clean:
 
 dist:
 	rm -f *.zip
-	zip $(BASE).zip *.exe 
+	zip $(DIST_ZIP) *.exe 
 
 # Your new automated release workflow
 release: dist
