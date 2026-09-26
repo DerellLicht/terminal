@@ -2,7 +2,6 @@ USE_DEBUG = NO
 USE_64BIT = NO
 USE_UNICODE = NO
 USE_CLANG = NO
-# sadly, cygwin mingw does not support gdiplus...
 USE_CYGWIN = NO
 
 # the legacy version of qualify.cpp, does not depend upon c++ string class
